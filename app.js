@@ -168,7 +168,11 @@ __webpack_require__.r(__webpack_exports__);
 // This file will be compiled into app.js
 // Feel free with using ES6 here.
 
- // Smooth scrolling
+
+const allVideos = document.querySelectorAll('video');
+allVideos.forEach(video => {
+  video.play();
+}); // Smooth scrolling
 // Select all links with hashes
 // Only hook our container just in case
 
@@ -214,19 +218,28 @@ jquery__WEBPACK_IMPORTED_MODULE_0___default()('a[href*="#"]', '.SC-LB__container
 const tooltips = document.querySelectorAll(".all-tooltip .tooltip"); // const fullDiv = document.querySelector(".hotspot-container");
 
 const allContainers = document.querySelectorAll('.hotspot-container');
+const allImages = document.querySelectorAll('.hotspot-wrapper .feature_container img');
 const container = document.querySelector(".container");
 let timeoutId;
 window.addEventListener("resize", contentPosition);
-window.addEventListener("DOMContentLoaded", contentPosition); // Positions
+window.addEventListener("DOMContentLoaded", contentPosition);
+window.addEventListener('load', contentPosition);
+window.addEventListener('scroll', checkScroll); // Positions
+
+allImages.forEach(image => {
+  image.onload = function () {
+    contentPosition();
+  };
+});
 
 function contentPosition() {
   allContainers.forEach(container => {
-    const childTooltips = container.querySelectorAll(".all-tooltip .tooltip");
-    container.addEventListener('click', () => {
-      childTooltips.forEach(tooltip => {
-        tooltip.classList.toggle('active');
-      });
-    });
+    const childTooltips = container.querySelectorAll(".all-tooltip .tooltip"); // container.addEventListener('click', () => {
+    //     childTooltips.forEach((tooltip) => {
+    //         tooltip.classList.toggle('active');
+    //     })
+    // })
+
     childTooltips.forEach(tooltip => {
       const pin = tooltip.querySelector(".pin");
       const content = tooltip.querySelector(".tooltip-content");
@@ -236,20 +249,43 @@ function contentPosition() {
       if (pinLeft + content.offsetWidth / 2 > container.offsetWidth) {
         const extraLeft = container.offsetWidth - (pinLeft + content.offsetWidth / 2); // console.log('right-conflict', tooltip)
 
-        content.style.left = pinLeft - content.offsetWidth / 2 + extraLeft - 30 + "px";
+        content.style.left = pinLeft - content.offsetWidth / 2 + extraLeft - 20 + "px";
         content.style.top = pin.offsetTop - 20 - content.offsetHeight + "px";
       } else if (pin.offsetLeft + container.offsetLeft < content.offsetWidth / 2) {
         // console.log('left conflict', pin.offsetLeft)
         content.style.left = -container.offsetLeft + "px";
         content.style.top = pin.offsetTop - 20 - content.offsetHeight + "px"; //   content.style.top = pin.offsetTop + 30 + "px";
       } else {
-        content.style.left = pinLeft - content.offsetWidth / 2 + "px"; //   content.style.top = pin.offsetTop + 30 + "px";
+        content.style.left = pinLeft - content.offsetWidth / 2 + 10 + "px"; //   content.style.top = pin.offsetTop + 30 + "px";
 
         content.style.top = pin.offsetTop - 20 - content.offsetHeight + 'px';
       }
 
       arrow.style.left = pinLeft - content.offsetLeft - pin.offsetWidth / 2 + "px";
     });
+  });
+}
+
+function checkScroll() {
+  allContainers.forEach(container => {
+    // Check if this has scrolled past
+    if (container.classList.contains('triggered')) {
+      return;
+    }
+
+    if (inView(container)) {
+      container.classList.add('triggered'); // clearTimeout(timeoutId);
+
+      const childTooltips = container.querySelectorAll(".all-tooltip .tooltip");
+      childTooltips.forEach(tooltip => {
+        tooltip.classList.add('active');
+        setTimeout(() => {
+          if (!tooltip.classList.contains("content-hover")) {
+            tooltip.classList.remove("active");
+          }
+        }, 3000);
+      });
+    }
   });
 } // Click / Hover Handlers
 
@@ -279,6 +315,37 @@ tooltips.forEach(tooltip => {
     }, 2000);
   });
 });
+
+function getScrollTop() {
+  if (typeof pageYOffset != 'undefined') {
+    return pageYOffset; // Most browsers
+  } else {
+    var b = document.body; //IE 'quirks'
+
+    var d = document.documentElement; //IE with doctype
+
+    d = d.clientHeight ? d : b;
+    return d.scrollTop;
+  }
+}
+
+function inView(element) {
+  // get window height
+  var windowHeight = window.innerHeight; // get number of pixels that the document is scrolled
+
+  var scrollY = window.scrollY || window.pageYOffset;
+  var elementHeight = element.clientHeight; // get current scroll position (distance from the top of the page to the bottom of the current viewport)
+
+  var scrollPosition = scrollY + windowHeight; // get element position (distance from the top of the page to the bottom of the element)
+
+  var elementPosition = element.getBoundingClientRect().top + scrollY + elementHeight; // is scroll position greater than element position? (is element in view?)
+
+  if (scrollPosition > elementPosition) {
+    return true;
+  }
+
+  return false;
+}
 
 /***/ })
 /******/ ]);
